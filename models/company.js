@@ -2,7 +2,7 @@
 
 const db = require("../db");
 const { BadRequestError, NotFoundError } = require("../expressError");
-const { sqlForPartialUpdate } = require("../helpers/sql");
+const { sqlForPartialUpdate, combineWhereClauses } = require("../helpers/sql");
 
 /** Related functions for companies. */
 
@@ -49,7 +49,7 @@ class Company {
    * Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
    * */
 
-  static async findAll() {
+  static async findAll(where = '') {
     const companiesRes = await db.query(
           `SELECT handle,
                   name,
@@ -57,8 +57,35 @@ class Company {
                   num_employees AS "numEmployees",
                   logo_url AS "logoUrl"
            FROM companies
+           ${where}
            ORDER BY name`);
     return companiesRes.rows;
+  }
+
+  static async findFiltered(queryObj) {
+    const whereClauses = [];
+    for (const key in queryObj) {
+      // Write SQL where clauses for each filter parameter
+      switch (key) {
+        case 'name':
+          const name = queryObj.name;
+          // Where clause that looks for both capitalized and non-capitalized version of string
+          whereClauses.push(`(name LIKE '%${name.charAt(0).toUpperCase() + name.slice(1)}%'` + 
+            ` OR name LIKE '%${name.charAt(0).toLowerCase() + name.slice(1)}%')`);
+          break;
+        case 'minEmployees':
+          whereClauses.push(`num_employees >= ${queryObj.minEmployees}`);
+          break;
+        case 'maxEmployees':
+          whereClauses.push(`num_employees <= ${queryObj.maxEmployees}`);
+          break;
+        default:
+          throw new BadRequestError(`${key} is not an correct filter parameter. Filter parameters allowed: name, minEmployees, and maxEmployees`);
+      }
+    }
+    const whereString = combineWhereClauses(whereClauses);
+    // Query using findAll and return results
+    return this.findAll(whereString);
   }
 
   /** Given a company handle, return data about company.

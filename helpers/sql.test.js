@@ -1,4 +1,4 @@
-const { sqlForPartialUpdate } = require("./sql");
+const { sqlForPartialUpdate, combineWhereClauses } = require("./sql");
 const { BadRequestError } = require("../expressError");
 
 const companyJsToSQL = {
@@ -27,5 +27,25 @@ describe("Test sqlForPartialUpdate", function () {
     expect(() => {
       sqlForPartialUpdate(data, companyJsToSQL);
     }).toThrow(new BadRequestError("No data"));
+  });
+});
+
+describe("Test combineWhereClauses", function () {
+  test("Correctly constructs WHERE clause string with multiple clauses", function () {
+    const clauseArray = [`name = 'Claudia'`, `num_employees >= 100`, `num_employees <= 500`];
+    const whereString = combineWhereClauses(clauseArray);
+    expect(whereString).toEqual(
+      `WHERE name = 'Claudia' AND num_employees >= 100 AND num_employees <= 500`
+    );
+  });
+
+  test("Correctly constructs WHERE clause string with single clause", function () {
+    const whereString = combineWhereClauses([`name = 'John'`]);
+    expect(whereString).toEqual(`WHERE name = 'John'`);
+  });
+
+  test("Correctly returns empty string when passed an empty array", function () {
+    const whereString = combineWhereClauses([]);
+    expect(whereString).toEqual('');
   });
 });
