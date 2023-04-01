@@ -12,6 +12,7 @@ const {
   commonBeforeEach,
   commonAfterEach,
   commonAfterAll,
+  testJobs
 } = require("./_testCommon");
 
 beforeAll(commonBeforeAll);
@@ -225,6 +226,75 @@ describe("remove", function () {
       fail();
     } catch (err) {
       expect(err instanceof NotFoundError).toBeTruthy();
+    }
+  });
+});
+
+describe("apply", function () {
+  // Erroneous username and jobId for error testing
+  const wrongUsername = 'fjisaoj';
+  const wrongJobId = 456186535;
+
+  test("works", async function () {
+    await User.apply('u1', testJobs[0].id);
+    const res = await db.query(
+      `SELECT * FROM applications WHERE username = 'u1'`
+    );
+    expect(res.rows).toEqual(
+      [{ username: 'u1', job_id: testJobs[0].id }]
+    );
+  });
+
+  test("duplicate creates error", async function () {
+    try {
+      await User.apply('u1', testJobs[1].id);
+      await User.apply('u1', testJobs[1].id);
+      fail();
+    } catch (err) {
+      expect(err instanceof BadRequestError).toBeTruthy();
+    }
+  });
+
+  // The following tests have ROLLBACK to undo BEGIN in beforeEach so transactions will autocommit.
+  // Autocommit is needed because otherwise the failed insert queries will cause the select
+  // queries in the error handling to fail.
+
+  test("wrong username throws custom error", async function () {
+    await db.query("ROLLBACK");
+    try {
+      await User.apply(wrongUsername, testJobs[0].id);
+      // Delete application from db if somehow the insert succeeds
+      await db.query(`DELETE FROM applications WHERE username = ${wrongUsername} and jobId = ${testJobs[0].id}`);
+      fail();
+    } catch (err) {
+      expect(err instanceof NotFoundError).toBeTruthy();
+      expect(err.message).toEqual(`username (${wrongUsername}) not found`);
+    }
+  });
+
+  test("wrong jobId throws custom error", async function () {
+    await db.query("ROLLBACK");
+    try {
+      await User.apply('u1', wrongJobId);
+      // Delete application from db if somehow the insert succeeds
+      await db.query(`DELETE FROM applications WHERE jobId = ${wrongJobId} and username ='u1'`);
+      fail();
+    } catch (err) {
+      expect(err instanceof NotFoundError).toBeTruthy();
+      expect(err.message).toEqual(`job id (${wrongJobId}) not found`);
+    }
+  });
+
+  test("wrong jobId and username throws custom error", async function () {
+    await db.query("ROLLBACK");
+    try {
+      await User.apply(wrongUsername, wrongJobId);
+      // Delete application from db if somehow the insert succeeds
+      await db.query(`DELETE FROM applications WHERE jobId = ${wrongJobId} and username = ${wrongUsername}`);
+      fail();
+    } catch (err) {
+      expect(err instanceof NotFoundError).toBeTruthy();
+      expect(err.message).toEqual(`username (${wrongUsername}) and job id (${wrongJobId}) not found`);
     }
   });
 });

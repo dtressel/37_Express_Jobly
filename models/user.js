@@ -3,6 +3,7 @@
 const db = require("../db");
 const bcrypt = require("bcrypt");
 const { sqlForPartialUpdate } = require("../helpers/sql");
+const { customizeApplyError } = require("../helpers/errorMsg");
 const {
   NotFoundError,
   BadRequestError,
@@ -204,7 +205,38 @@ class User {
 
     if (!user) throw new NotFoundError(`No user: ${username}`);
   }
-}
 
+  /** Creates an application for a user.
+   *
+   * If error occurs, it checks to see if the username and/or jobId was incorrect.
+   * If so, it throws a custom not found error.
+   * If not, it re-throws the original error.
+   *
+   */
+
+  static async apply(username, jobId) {
+    const duplicateCheck = await db.query(
+      `SELECT job_id
+        FROM applications
+        WHERE username = $1 AND job_id = $2`,
+    [username, jobId],
+    );
+    if (duplicateCheck.rows[0]) {
+      throw new BadRequestError(`${username} has already applied to job ${jobId}`);
+    }
+    // try query
+    try {
+      await db.query(
+          `INSERT INTO applications
+           (username, job_id)
+           VALUES ($1, $2)
+           RETURNING job_id`,
+        [username, jobId]
+      );
+    } catch(err) {
+      throw(await customizeApplyError(username, jobId, err));
+    }
+  }
+}
 
 module.exports = User;

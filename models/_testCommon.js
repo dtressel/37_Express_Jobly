@@ -42,8 +42,6 @@ async function commonBeforeAll() {
 
   testJobs.push(...res.rows);
   testJobs2 = res.rows;
-  console.log(testJobs);
-  console.log(testJobs2);
 }
 
 async function commonBeforeEach() {
