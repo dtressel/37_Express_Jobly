@@ -4,7 +4,6 @@ const db = require("../db.js");
 const { BCRYPT_WORK_FACTOR } = require("../config");
 
 let testJobs = [];
-let testJobs2;
 
 async function commonBeforeAll() {
   // noinspection SqlWithoutWhere
@@ -41,7 +40,6 @@ async function commonBeforeAll() {
   RETURNING id`);
 
   testJobs.push(...res.rows);
-  testJobs2 = res.rows;
 }
 
 async function commonBeforeEach() {
@@ -61,6 +59,5 @@ module.exports = {
   commonBeforeEach,
   commonAfterEach,
   commonAfterAll,
-  testJobs,
-  testJobs2
+  testJobs
 };

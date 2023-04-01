@@ -8,8 +8,7 @@ const {
   commonBeforeEach,
   commonAfterEach,
   commonAfterAll,
-  testJobs,
-  testJobs2
+  testJobs
 } = require("./_testCommon");
 
 beforeAll(commonBeforeAll);
@@ -28,8 +27,6 @@ describe("create", function () {
   };
 
   test("works", async function () {
-    console.log(testJobs);
-    console.log(testJobs2);
     let job = await Job.create(newJob);
     expect(job).toEqual({ ...newJob, id: expect.any(Number), equity: "0" });
 
