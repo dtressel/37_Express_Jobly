@@ -24,7 +24,7 @@ const router = express.Router();
  * This returns the newly created user and an authentication token for them:
  *  {user: { username, firstName, lastName, email, isAdmin }, token }
  *
- * Authorization required: login
+ * Authorization required: admin
  **/
 
 router.post("/", ensureAdmin, async function (req, res, next) {
@@ -48,7 +48,7 @@ router.post("/", ensureAdmin, async function (req, res, next) {
  *
  * Returns list of all users.
  *
- * Authorization required: login
+ * Authorization required: admin
  **/
 
 router.get("/", ensureAdmin, async function (req, res, next) {
@@ -65,7 +65,7 @@ router.get("/", ensureAdmin, async function (req, res, next) {
  *
  * Returns { username, firstName, lastName, isAdmin }
  *
- * Authorization required: login
+ * Authorization required: matching user (logged in) or admin
  **/
 
 router.get("/:username", ensureSelfOrAdmin, async function (req, res, next) {
@@ -85,7 +85,7 @@ router.get("/:username", ensureSelfOrAdmin, async function (req, res, next) {
  *
  * Returns { username, firstName, lastName, email, isAdmin }
  *
- * Authorization required: login
+ * Authorization required: matching user (logged in) or admin
  **/
 
 router.patch("/:username", ensureSelfOrAdmin, async function (req, res, next) {
@@ -106,7 +106,7 @@ router.patch("/:username", ensureSelfOrAdmin, async function (req, res, next) {
 
 /** DELETE /[username]  =>  { deleted: username }
  *
- * Authorization required: login
+ * Authorization required: matching user (logged in) or admin
  **/
 
 router.delete("/:username", ensureSelfOrAdmin, async function (req, res, next) {
@@ -118,11 +118,17 @@ router.delete("/:username", ensureSelfOrAdmin, async function (req, res, next) {
   }
 });
 
+/** POST /[username]/jobs/[id]  =>  { applied: jobId }
+ *
+ * Authorization required: matching user (logged in) or admin
+ **/
+
 router.post("/:username/jobs/:id", ensureSelfOrAdmin, async function (req, res, next) {
   try {
     await User.apply(req.params.username, req.params.id);
     return res.json({ applied: req.params.id });
   } catch (err) {
+    console.log(err);
     return next(err);
   }
 })

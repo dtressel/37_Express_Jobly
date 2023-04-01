@@ -12,7 +12,8 @@ const {
   commonAfterEach,
   commonAfterAll,
   u1Token,
-  u3TokenAdmin
+  u3TokenAdmin,
+  testJobs
 } = require("./_testCommon");
 
 beforeAll(commonBeforeAll);
@@ -374,6 +375,85 @@ describe("DELETE /users/:username", function () {
         .set("authorization", `Bearer ${u3TokenAdmin}`);
     expect(resp.statusCode).toEqual(404);
   });
+});
 
-  
+/************************************** POST /users/:username/jobs/:id */
+
+describe("POST /users/:username/jobs.:id", function () {
+  // Erroneous username and jobId for error testing
+  const wrongUsername = 'fjisaoj';
+  const wrongJobId = 456186535;
+
+  test("works for user to add own application", async function () {
+    const resp = await request(app)
+        .post(`/users/u1/jobs/${testJobs[0].id}`)
+        .set("authorization", `Bearer ${u1Token}`);  
+    expect(resp.body).toEqual({ applied: testJobs[0].id.toString() });
+  });
+
+  test("works for admin to add application for another user", async function () {
+    const resp = await request(app)
+        .post(`/users/u1/jobs/${testJobs[1].id}`)
+        .set("authorization", `Bearer ${u3TokenAdmin}`);
+    expect(resp.body).toEqual({ applied: testJobs[1].id.toString() });
+  });
+
+  test("unauth for anon", async function () {
+    const resp = await request(app)
+        .post(`/users/u1/jobs/${testJobs[0].id}`)
+    expect(resp.statusCode).toEqual(401);
+  });
+
+  test("unauth for a non-admin to add application for another user", async function () {
+    const resp = await request(app)
+        .post(`/users/u2/jobs/${testJobs[1].id}`)
+        .set("authorization", `Bearer ${u1Token}`);      
+    expect(resp.statusCode).toEqual(401);
+  });
+
+  // The following tests have ROLLBACK to undo BEGIN in beforeEach so transactions will autocommit.
+  // Autocommit is needed because otherwise the failed insert queries will cause the select
+  // queries in the error handling to fail.
+
+  test("not found if user missing", async function () {
+    await db.query("ROLLBACK");
+    const resp = await request(app)
+        .post(`/users/${wrongUsername}/jobs/${testJobs[2].id}`)
+        .set("authorization", `Bearer ${u3TokenAdmin}`);
+    expect(resp.statusCode).toEqual(404);
+    expect(resp.body).toEqual({ error: {
+      status: 404, message: `username (${wrongUsername}) not found` }});
+    // Delete application from db if somehow the insert succeeds
+    if (resp.statusCode < 300) {
+      await db.query(`DELETE FROM applications WHERE jobId = ${testJobs[2].id} and username = ${wrongUsername}`);
+    }
+  });
+
+  test("not found if job id missing", async function () {
+    await db.query("ROLLBACK");
+    const resp = await request(app)
+        .post(`/users/u1/jobs/${wrongJobId}`)
+        .set("authorization", `Bearer ${u3TokenAdmin}`);
+    expect(resp.statusCode).toEqual(404);
+    expect(resp.body).toEqual({ error: {
+      status: 404, message: `job id (${wrongJobId}) not found` }});
+    // Delete application from db if somehow the insert succeeds
+    if (resp.statusCode < 300) {
+      await db.query(`DELETE FROM applications WHERE jobId = ${wrongJobId} and username = 'u1'`);
+    }
+  });
+
+  test("not found if job id and username missing", async function () {
+    await db.query("ROLLBACK");
+    const resp = await request(app)
+        .post(`/users/${wrongUsername}/jobs/${wrongJobId}`)
+        .set("authorization", `Bearer ${u3TokenAdmin}`);
+    expect(resp.statusCode).toEqual(404);
+    expect(resp.body).toEqual({ error: {
+      status: 404, message: `username (${wrongUsername}) and job id (${wrongJobId}) not found` }});
+    // Delete application from db if somehow the insert succeeds
+    if (resp.statusCode < 300) {
+      await db.query(`DELETE FROM applications WHERE jobId = ${wrongJobId} and username = ${wrongUsername}`);
+    }
+  });
 });
