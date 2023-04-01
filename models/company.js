@@ -69,9 +69,8 @@ class Company {
       switch (key) {
         case 'name':
           const name = queryObj.name;
-          // Where clause that looks for both capitalized and non-capitalized version of string
-          whereClauses.push(`(name LIKE '%${name.charAt(0).toUpperCase() + name.slice(1)}%'` + 
-            ` OR name LIKE '%${name.charAt(0).toLowerCase() + name.slice(1)}%')`);
+          // Where clause that looks for case-insensitive version of string
+          whereClauses.push(`UPPER(name) LIKE UPPER('%${name}%')`);
           break;
         case 'minEmployees':
           whereClauses.push(`num_employees >= ${queryObj.minEmployees}`);
