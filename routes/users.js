@@ -44,7 +44,7 @@ router.post("/", ensureAdmin, async function (req, res, next) {
 });
 
 
-/** GET / => { users: [ {username, firstName, lastName, email }, ... ] }
+/** GET / => { users: [ {username, firstName, lastName, email, isAdmin }, ... ] }
  *
  * Returns list of all users.
  *
@@ -63,7 +63,7 @@ router.get("/", ensureAdmin, async function (req, res, next) {
 
 /** GET /[username] => { user }
  *
- * Returns { username, firstName, lastName, isAdmin }
+ * Returns { username, firstName, lastName, email, isAdmin, jobsApplied }
  *
  * Authorization required: matching user (logged in) or admin
  **/

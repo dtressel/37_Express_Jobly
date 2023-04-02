@@ -84,6 +84,10 @@ async function commonBeforeAll() {
     companyHandle: "c1"
   });
   testJobs.push(testJob1, testJob2, testJob3);
+
+  await User.apply('u1', testJob1.id);
+  await User.apply('u1', testJob2.id);
+  await User.apply('u2', testJob3.id);
 }
 
 async function commonBeforeEach() {

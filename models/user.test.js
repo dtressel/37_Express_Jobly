@@ -141,6 +141,7 @@ describe("get", function () {
       lastName: "U1L",
       email: "u1@email.com",
       isAdmin: false,
+      jobsApplied: [testJobs[1].id, testJobs[0].id]
     });
   });
 
@@ -236,19 +237,23 @@ describe("apply", function () {
   const wrongJobId = 456186535;
 
   test("works", async function () {
-    await User.apply('u1', testJobs[0].id);
+    await User.apply('u1', testJobs[2].id);
     const res = await db.query(
       `SELECT * FROM applications WHERE username = 'u1'`
     );
     expect(res.rows).toEqual(
-      [{ username: 'u1', job_id: testJobs[0].id }]
+      [
+        { username: 'u1', job_id: testJobs[0].id },
+        { username: 'u1', job_id: testJobs[1].id },
+        { username: 'u1', job_id: testJobs[2].id }
+      ]
     );
   });
 
   test("duplicate creates error", async function () {
     try {
-      await User.apply('u1', testJobs[1].id);
-      await User.apply('u1', testJobs[1].id);
+      await User.apply('u1', testJobs[2].id);
+      await User.apply('u1', testJobs[2].id);
       fail();
     } catch (err) {
       expect(err instanceof BadRequestError).toBeTruthy();

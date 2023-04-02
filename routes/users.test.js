@@ -200,6 +200,7 @@ describe("GET /users/:username", function () {
         lastName: "U1L",
         email: "user1@user.com",
         isAdmin: false,
+        jobsApplied: [testJobs[1].id, testJobs[0].id]
       },
     });
   });
@@ -215,6 +216,7 @@ describe("GET /users/:username", function () {
         lastName: "U1L",
         email: "user1@user.com",
         isAdmin: false,
+        jobsApplied: [testJobs[1].id, testJobs[0].id]
       },
     });
   });
@@ -386,27 +388,27 @@ describe("POST /users/:username/jobs.:id", function () {
 
   test("works for user to add own application", async function () {
     const resp = await request(app)
-        .post(`/users/u1/jobs/${testJobs[0].id}`)
+        .post(`/users/u1/jobs/${testJobs[2].id}`)
         .set("authorization", `Bearer ${u1Token}`);  
-    expect(resp.body).toEqual({ applied: testJobs[0].id.toString() });
+    expect(resp.body).toEqual({ applied: testJobs[2].id.toString() });
   });
 
   test("works for admin to add application for another user", async function () {
     const resp = await request(app)
-        .post(`/users/u1/jobs/${testJobs[1].id}`)
+        .post(`/users/u1/jobs/${testJobs[2].id}`)
         .set("authorization", `Bearer ${u3TokenAdmin}`);
-    expect(resp.body).toEqual({ applied: testJobs[1].id.toString() });
+    expect(resp.body).toEqual({ applied: testJobs[2].id.toString() });
   });
 
   test("unauth for anon", async function () {
     const resp = await request(app)
-        .post(`/users/u1/jobs/${testJobs[0].id}`)
+        .post(`/users/u1/jobs/${testJobs[2].id}`)
     expect(resp.statusCode).toEqual(401);
   });
 
   test("unauth for a non-admin to add application for another user", async function () {
     const resp = await request(app)
-        .post(`/users/u2/jobs/${testJobs[1].id}`)
+        .post(`/users/u2/jobs/${testJobs[2].id}`)
         .set("authorization", `Bearer ${u1Token}`);      
     expect(resp.statusCode).toEqual(401);
   });
