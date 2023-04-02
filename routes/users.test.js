@@ -425,6 +425,7 @@ describe("POST /users/:username/jobs.:id", function () {
     expect(resp.statusCode).toEqual(404);
     expect(resp.body).toEqual({ error: {
       status: 404, message: `username (${wrongUsername}) not found` }});
+
     // Delete application from db if somehow the insert succeeds
     if (resp.statusCode < 300) {
       await db.query(`DELETE FROM applications WHERE jobId = ${testJobs[2].id} and username = ${wrongUsername}`);
@@ -439,6 +440,7 @@ describe("POST /users/:username/jobs.:id", function () {
     expect(resp.statusCode).toEqual(404);
     expect(resp.body).toEqual({ error: {
       status: 404, message: `job id (${wrongJobId}) not found` }});
+
     // Delete application from db if somehow the insert succeeds
     if (resp.statusCode < 300) {
       await db.query(`DELETE FROM applications WHERE jobId = ${wrongJobId} and username = 'u1'`);
@@ -453,6 +455,7 @@ describe("POST /users/:username/jobs.:id", function () {
     expect(resp.statusCode).toEqual(404);
     expect(resp.body).toEqual({ error: {
       status: 404, message: `username (${wrongUsername}) and job id (${wrongJobId}) not found` }});
+      
     // Delete application from db if somehow the insert succeeds
     if (resp.statusCode < 300) {
       await db.query(`DELETE FROM applications WHERE jobId = ${wrongJobId} and username = ${wrongUsername}`);
