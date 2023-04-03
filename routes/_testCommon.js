@@ -9,11 +9,14 @@ const { createToken } = require("../helpers/tokens");
 const testJobs = [];
 
 async function commonBeforeAll() {
+  console.log('running common before all');
   // noinspection SqlWithoutWhere
   await db.query("DELETE FROM users");
   // noinspection SqlWithoutWhere
   await db.query("DELETE FROM companies");
   await db.query("DELETE FROM jobs");
+  // Empty testJobs if not already
+  testJobs.length = 0;
 
   await Company.create(
       {

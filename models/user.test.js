@@ -268,12 +268,14 @@ describe("apply", function () {
     await db.query("ROLLBACK");
     try {
       await User.apply(wrongUsername, testJobs[0].id);
-      // Delete application from db if somehow the insert succeeds
-      await db.query(`DELETE FROM applications WHERE username = ${wrongUsername} and jobId = ${testJobs[0].id}`);
+      // refresh tables if somehow changes were made to db
+      await commonBeforeAll();
       fail();
     } catch (err) {
       expect(err instanceof NotFoundError).toBeTruthy();
       expect(err.message).toEqual(`username (${wrongUsername}) not found`);
+      // refresh tables if somehow changes were made to db
+      await commonBeforeAll();
     }
   });
 
@@ -281,12 +283,14 @@ describe("apply", function () {
     await db.query("ROLLBACK");
     try {
       await User.apply('u1', wrongJobId);
-      // Delete application from db if somehow the insert succeeds
-      await db.query(`DELETE FROM applications WHERE jobId = ${wrongJobId} and username ='u1'`);
+      // refresh tables if somehow changes were made to db
+      await commonBeforeAll();
       fail();
     } catch (err) {
       expect(err instanceof NotFoundError).toBeTruthy();
       expect(err.message).toEqual(`job id (${wrongJobId}) not found`);
+      // refresh tables if somehow changes were made to db
+      await commonBeforeAll();
     }
   });
 
@@ -294,12 +298,14 @@ describe("apply", function () {
     await db.query("ROLLBACK");
     try {
       await User.apply(wrongUsername, wrongJobId);
-      // Delete application from db if somehow the insert succeeds
-      await db.query(`DELETE FROM applications WHERE jobId = ${wrongJobId} and username = ${wrongUsername}`);
+      // refresh tables if somehow changes were made to db
+      await commonBeforeAll();
       fail();
     } catch (err) {
       expect(err instanceof NotFoundError).toBeTruthy();
       expect(err.message).toEqual(`username (${wrongUsername}) and job id (${wrongJobId}) not found`);
+      // refresh tables if somehow changes were made to db
+      await commonBeforeAll();
     }
   });
 });

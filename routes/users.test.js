@@ -426,10 +426,8 @@ describe("POST /users/:username/jobs.:id", function () {
     expect(resp.body).toEqual({ error: {
       status: 404, message: `username (${wrongUsername}) not found` }});
 
-    // Delete application from db if somehow the insert succeeds
-    if (resp.statusCode < 300) {
-      await db.query(`DELETE FROM applications WHERE jobId = ${testJobs[2].id} and username = ${wrongUsername}`);
-    }
+    // refresh tables if somehow changes were made to db
+    await commonBeforeAll();
   });
 
   test("not found if job id missing", async function () {
@@ -441,10 +439,8 @@ describe("POST /users/:username/jobs.:id", function () {
     expect(resp.body).toEqual({ error: {
       status: 404, message: `job id (${wrongJobId}) not found` }});
 
-    // Delete application from db if somehow the insert succeeds
-    if (resp.statusCode < 300) {
-      await db.query(`DELETE FROM applications WHERE jobId = ${wrongJobId} and username = 'u1'`);
-    }
+    // refresh tables if somehow changes were made to db
+    await commonBeforeAll();
   });
 
   test("not found if job id and username missing", async function () {
@@ -456,9 +452,7 @@ describe("POST /users/:username/jobs.:id", function () {
     expect(resp.body).toEqual({ error: {
       status: 404, message: `username (${wrongUsername}) and job id (${wrongJobId}) not found` }});
       
-    // Delete application from db if somehow the insert succeeds
-    if (resp.statusCode < 300) {
-      await db.query(`DELETE FROM applications WHERE jobId = ${wrongJobId} and username = ${wrongUsername}`);
-    }
+    // refresh tables if somehow changes were made to db
+    await commonBeforeAll();
   });
 });
