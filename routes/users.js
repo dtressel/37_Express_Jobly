@@ -128,7 +128,6 @@ router.post("/:username/jobs/:id", ensureSelfOrAdmin, async function (req, res, 
     await User.apply(req.params.username, req.params.id);
     return res.json({ applied: req.params.id });
   } catch (err) {
-    console.log(err);
     return next(err);
   }
 })
